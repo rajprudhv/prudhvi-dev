@@ -30,7 +30,6 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="98cab0d7-05bc-4579-80cf-25d1e153d3c7" message="==========os end logger===="/>
 	</flow>
 	<flow name="objectstoreFlow1" doc:id="7387d132-be56-454d-9f79-ae5e32fa3f13" >
 		<scheduler doc:name="Scheduler" doc:id="d26e88a7-5339-47c6-8c66-9730c32d43bc" >

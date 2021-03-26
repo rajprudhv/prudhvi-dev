@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="59a58bf2-7308-42b2-8b77-71145da47dfb" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="95b2c928-3774-40c7-b8c5-2af5d3278632" maxEntries="10" entryTtl="5" entryTtlUnit="MINUTES" />
+	<os:object-store name="Object_store_db" doc:name="Object store" doc:id="ab60dbc0-faa7-474e-bb76-2bdbe7abc6d7" />
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="7a345a0c-5759-4797-922d-e757f36a8f4d" >
+		<db:data-source-connection />
+	</db:config>
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="e2574bba-79e4-4904-a9cc-9ba63d1abea8" >
+		<db:my-sql-connection host="ghjb" port="4567" user="bnm " password="hvjb" database="ghb" />
+	</db:config>
+	<flow name="objectstoreFlow" doc:id="37a693f1-1d97-47b9-929b-7e89765dbe05" >
+		<http:listener doc:name="Listener" doc:id="5610922e-ba99-4561-b041-b975d421ef9f" config-ref="HTTP_Listener_config" path="/os"/>
+		<logger level="INFO" doc:name="Logger" doc:id="35316801-2dfd-447a-ad3f-f9c5caaec02b" message="====os start loger==="/>
+		<os:contains doc:name="Contains" doc:id="2b5f6eda-b4bb-495a-b8c5-d4563e81cc2a" key="osKey1" objectStore="Object_store"/>
+		<ee:transform doc:name="Transform Message" doc:id="755a0aa2-58e3-48aa-8659-21584f6b3860" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="98cab0d7-05bc-4579-80cf-25d1e153d3c7" message="==========os end logger===="/>
+	</flow>
+	<flow name="objectstoreFlow1" doc:id="7387d132-be56-454d-9f79-ae5e32fa3f13" >
+		<scheduler doc:name="Scheduler" doc:id="d26e88a7-5339-47c6-8c66-9730c32d43bc" >
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="Logger" doc:id="030b1745-ce7f-448c-8041-947b586d0ff8" />
+		<os:retrieve doc:name="Retrieve" doc:id="320a190d-76ee-4e0c-9a12-36616443ac61" key="dbKey" target="dbKeyWaterMrk">
+			<os:default-value ><![CDATA[0]]></os:default-value>
+		</os:retrieve>
+		<logger level="INFO" doc:name="Logger" doc:id="78ed2c65-6ab1-46ab-8943-410d2e33fd6a" />
+		<db:select doc:name="Select" doc:id="d7e70990-3b70-4c73-b63b-16eda22bfc21" config-ref="Database_Config1">
+			<db:sql ><![CDATA[select * from tablname where id > vars.dbKeyWaterMrk]]></db:sql>
+		</db:select>
+		<logger level="INFO" doc:name="Logger" doc:id="70a16a10-bb42-4c13-a126-8d392b0a0253" message="========dbResponse===#[payload]"/>
+		<os:store doc:name="Store" doc:id="43292edb-bd2e-4551-bd50-0d646abd25ab" key="dbKey">
+			<os:value ><![CDATA[#[max(payload map $.id)]]]></os:value>
+		</os:store>
+		<logger level="INFO" doc:name="Logger" doc:id="8e8be788-d4bd-4307-b933-32d8d471edda" />
+	</flow>
+</mule>
